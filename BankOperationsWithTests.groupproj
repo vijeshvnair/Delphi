@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{0F456808-F1D9-45B2-87C6-D30353ED44EB}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="TestBankOperations.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="BankOperations.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="TestBankOperations">
+        <MSBuild Projects="TestBankOperations.dproj"/>
+    </Target>
+    <Target Name="TestBankOperations:Clean">
+        <MSBuild Projects="TestBankOperations.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="TestBankOperations:Make">
+        <MSBuild Projects="TestBankOperations.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="BankOperations">
+        <MSBuild Projects="BankOperations.dproj"/>
+    </Target>
+    <Target Name="BankOperations:Clean">
+        <MSBuild Projects="BankOperations.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="BankOperations:Make">
+        <MSBuild Projects="BankOperations.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="TestBankOperations;BankOperations"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="TestBankOperations:Clean;BankOperations:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="TestBankOperations:Make;BankOperations:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

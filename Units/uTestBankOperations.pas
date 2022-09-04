@@ -1,0 +1,374 @@
+unit uTestBankOperations;
+
+interface
+uses
+  DUnitX.TestFramework, uBankOperations;
+
+type
+   { uTestBankOperations.pas unit holds all the tests for IBankOperations. There are nine tests for testing the methods
+    This includes Exception raising for CreateAccount, Deposit, Withdraw, MiniStatment methods,  and their normal functionalities.
+   }
+  [TestFixture]
+  TMyTestObject = class(TObject)
+  strict private
+    BankOperations:IBankOperations;
+  public
+    [Setup]
+    procedure Setup;
+   [TearDown]
+    procedure TearDown;
+
+    //TestCreateAccountException method to test Exception can raise and is it the type of ECreateAccountException or not.
+    //  This is achieved by passing Invalid Customer Name and Invalid Customer Mobile.
+    [test]
+    procedure TestCreateAccountException();
+
+    //TestCreateAccount method is to test successful creation of Bank Account, and validate its account number, customer name,
+    //  mobile number, and Bank Account Type.
+    [test]
+    procedure TestCreateAccount();
+
+    //TestDepositException method to test Exception can raise and is it the type of EDepositException or not. This is achieved
+    //  by passing in Invalid Deposit Amount and Invalid Account Number.
+    [test]
+    procedure TestDepositException();
+
+    //TestDeposit method is to test successful Deposit into a Bank Account, and validate its account Balance.
+    [test]
+    procedure TestDeposit();
+
+    //TestWithdrawException method to test Exception can raise and is it the type of EWithdrawException or not. This is achieved
+    //  by passing in Exceding the balance amount to withdraw, Invalid Withdraw Amount and Invalid Account Number.
+    [test]
+    procedure TestWithdrawException();
+
+     //TestWithdraw method is to test successful Withdraw from a Bank Account, and validate its account Balance.
+    [test]
+    procedure TestWithdraw();
+
+    //TestMiniStatementException method to test Exception can raise and is it the type of EMiniStatementException or not. This is achieved
+    //  by passing in Invalid Account Number.
+    [test]
+    procedure TestMiniStatementException();
+
+    //TestMiniStatement method is to test successful creation of MiniStatement, This is by making a deposit and then a withdraw from
+    //  an account and then Generatr MiniStatement. This will be compared against an exisiting mini statement.
+    [test]
+    procedure TestMiniStatement();
+
+    // TestFiveAccountsWithMultipleTransactions method  is to test response of object by creating different accounts and each
+    // account having multiple deposits and withdrawals. Then validate their account balances and validate the total balance of the Bank.
+    [test]
+    procedure TestFiveAccountsWithMultipleTransactions();
+  end;
+
+implementation
+uses
+  System.SysUtils, Classes;
+
+resourcestring
+  //Messages
+  sCreateAccountFailed = 'Create account command failed!';
+  sDepositFailed = 'Deposit operation failed!';
+  sWithdrawFailed = 'Withdraw operation failed!';
+  sMiniStatementFailed = 'Mini Statement operation failed!';
+  sBalanceMatchFailed = 'Balance matching failed!';
+
+  //Exceptions
+  sCreateException = 'Create Account command failed to create an exception!';
+  sDepositException = 'Deposit command failed to create an exception!';
+  sWithdrawException = 'Withdraw command failed to create an exception!';
+  sMiniStatementException = 'Mini Statement command failed to create an exception!';
+
+procedure TMyTestObject.Setup;
+begin
+  BankOperations:= TBankOperations.Create;
+end;
+
+procedure TMyTestObject.TearDown;
+begin
+  BankOperations:= nil;
+end;
+
+
+procedure TMyTestObject.TestCreateAccount;
+var
+  CustomerName, CustomerMobile, ExpectedAccountNumber, ActualAccountNumber: string;
+  SavingsAccount:TBankAccountType;
+begin
+  //arrange
+    CustomerName:= 'John Wick';
+    CustomerMobile:= '+1 98765432101';
+    SavingsAccount:= batSavings;
+    ExpectedAccountNumber:= '1000002';
+  //Act
+    ActualAccountNumber:= BankOperations.CreateAccount(CustomerName, CustomerMobile, SavingsAccount);
+  //Assert
+    Assert.AreEqual(ExpectedAccountNumber, ActualAccountNumber, sCreateAccountFailed);
+    Assert.AreEqual(ExpectedAccountNumber, BankOperations.Account(ActualAccountNumber).AccountNumber, sCreateAccountFailed);
+    Assert.AreEqual(CustomerName, BankOperations.Account(ActualAccountNumber).Customer.Name, sCreateAccountFailed);
+    Assert.AreEqual(CustomerMobile, BankOperations.Account(ActualAccountNumber).Customer.Mobile, sCreateAccountFailed);
+    Assert.AreEqual(SavingsAccount, BankOperations.Account(ActualAccountNumber).BankAccountType, sCreateAccountFailed);
+end;
+
+procedure TMyTestObject.TestCreateAccountException;
+var
+  CustomerName, InvalidCustomerName, CustomerMobile, InvalidCustomerMobile:string;
+  SavingsAccount:TBankAccountType;
+begin
+  //Arrange
+    CustomerName:= 'Robert Bruce Banner';
+    CustomerMobile:= '+1 98765432102';
+    InvalidCustomerName:= EmptyStr;
+    InvalidCustomerMobile:= EmptyStr;
+    SavingsAccount:= batSavings;
+  // Assert
+    Assert.WillRaise(procedure begin BankOperations.CreateAccount(InvalidCustomerName, CustomerMobile, SavingsAccount); end, ECreateAccountException, sCreateException);
+    Assert.WillRaise(procedure begin BankOperations.CreateAccount(CustomerName, InvalidCustomerMobile, SavingsAccount); end, ECreateAccountException, sCreateException);
+end;
+
+procedure TMyTestObject.TestDeposit;
+var
+  Customer, CustomerMobile, AccountNumber:string;
+  SavingsAccount:TBankAccountType;
+  Amount:Currency;
+  DepositDate: TDateTime;
+begin
+  //Arrange
+    Customer:= 'Bruce Wayne';
+    CustomerMobile:= '+1 98765432103';
+    SavingsAccount:= batSavings;
+    Amount:= 1000000;
+    DepositDate:= now;
+    AccountNumber:= BankOperations.CreateAccount(Customer, CustomerMobile, SavingsAccount);
+  //Act
+    BankOperations.Deposit(AccountNumber, Amount, DepositDate);
+  //Assert
+    Assert.AreEqual(Amount, BankOperations.Account(AccountNumber).Balance, sDepositFailed);
+    tOBjet.
+end;
+
+procedure TMyTestObject.TestDepositException;
+var
+  Customer, CustomerMobile, AccountNumber, InvalidAccountNumber: string;
+  SavingsAccount:TBankAccountType;
+  DepositAmount, InvalidDepositAmount:Currency;
+  DepositDate:TDateTime;
+begin
+  //Arrange
+    Customer:= 'Clark Kent';
+    CustomerMobile:= '+1 98765432104';
+    SavingsAccount:= batSavings;
+    DepositAmount:= 1500;
+    InvalidDepositAmount:= -550;
+    InvalidAccountNumber:= '1001110';
+    DepositDate:= Now;
+    AccountNumber:= BankOperations.CreateAccount(Customer, CustomerMobile, SavingsAccount);
+  //Assert
+    Assert.WillRaise(procedure begin BankOperations.Deposit(AccountNumber, InvalidDepositAmount, DepositDate) end, EDepositException, sDepositException);
+    Assert.WillRaise(procedure begin BankOperations.Deposit(InvalidAccountNumber, DepositAmount, DepositDate) end, EDepositException, sDepositException);
+end;
+
+procedure TMyTestObject.TestMiniStatement;
+var
+  Customer, CustomerMobile, AccountNumber:string;
+  SavingsAccount:TBankAccountType;
+  DepositAmount, WithdrawalAmount:Currency;
+  DepositDate, WithDrawDate:TDateTime;
+  ExpectedMiniStatement, ActualMiniStatement:tstrings;
+  procedure FillExpectedResult();
+  begin
+    ExpectedMiniStatement:=  TStringList.Create;
+    ExpectedMiniStatement.CommaText:='"AccountNumber: 1000002","Customer Name: Eddie Brock",--------------------------------------------------,"Date               Amount       Type "'+
+        ',--------------------------------------------------,"21-03-2021 11:40:50    8000        Cr  ","25-04-2021 12:45:50    2000        Dr  "'+
+        ',--------------------------------------------------,"Account Balance: 6000",--------------------------------------------------';
+  end;
+begin
+  //Arrange
+    Customer:= 'Eddie Brock';
+    CustomerMobile:= '+1 98765432105';
+    SavingsAccount:= batSavings;
+    DepositAmount:= 8000;
+    WithdrawalAmount:= 2000;
+    DepositDate:= EncodeDate(2021, 03, 21) + EncodeTime(11, 40, 50, 123);
+    WithDrawDate:= EncodeDate(2021, 04, 25) + EncodeTime(12, 45, 50, 123);
+    FillExpectedResult;
+    AccountNumber:= BankOperations.CreateAccount(Customer, CustomerMobile, SavingsAccount);
+    BankOperations.Deposit(AccountNumber, DepositAmount, DepositDate);
+    BankOperations.Withdraw(AccountNumber, WithdrawalAmount, WithDrawDate);
+  //Act
+    ActualMiniStatement:= BankOperations.MiniStatement(AccountNumber);
+  //Assert
+    Assert.AreEqual(ExpectedMiniStatement, ActualMiniStatement, sMiniStatementFailed);
+
+    FreeAndNil(ExpectedMiniStatement);
+    FreeAndNil(ActualMiniStatement);
+end;
+
+procedure TMyTestObject.TestMiniStatementException;
+var
+  InvalidAccountNumber:string;
+begin
+  //Arrange
+    InvalidAccountNumber:= '1001110';
+  //Assert
+    Assert.WillRaise(procedure begin BankOperations.MiniStatement(InvalidAccountNumber) end, EMiniStatementException,  sMiniStatementException);
+end;
+
+procedure TMyTestObject.TestFiveAccountsWithMultipleTransactions;
+var
+  Customer1, Customer2, Customer3, Customer4, Customer5,
+  C1Mobile, C2Mobile, C3Mobile, C4Mobile, C5Mobile,
+  AccNo1, AccNo2, AccNo3, AccNo4, AccNo5          : string;
+  C1Savings, C3Savings, C5Savings, C2Current, C4Current: TBankAccountType;
+  C1Deposit1, C1Deposit2, C1Deposit3, C1Withdraw1,
+  C2Deposit1, C2Deposit2, C2Deposit3, C2Withdraw1, C2Withdraw2,
+  C3Deposit1, C3Withdraw1, C3Deposit2, C3Withdraw2, C3Deposit3, C3Deposit4,
+  C4Deposit1, C4Deposit2,
+  C5Deposit1, C5Withdraw1,
+  C1Balance, C2Balance, C3Balance, C4Balance, C5Balance   :currency;
+
+  TransactionDate:TDateTime;
+
+  TotalBankBalance:Currency;
+begin
+  //Arrange
+    TransactionDate:= now;
+
+    Customer1:= 'A';
+    Customer2:= 'B';
+    Customer3:= 'C';
+    Customer4:= 'D';
+    Customer5:= 'E';
+
+    C1Mobile:= '+1 987654321051';
+    C2Mobile:= '+1 987654321052';
+    C3Mobile:= '+1 987654321053';
+    C4Mobile:= '+1 987654321054';
+    C5Mobile:= '+1 987654321055';
+
+    C1Deposit1:= 1000;
+    C1Deposit2:= 500;
+    C1Deposit3:= 1200;
+    C1Withdraw1:= 250;
+
+    C2Deposit1:= 2000;
+    C2Deposit2:= 600;
+    C2Deposit3:= 700;
+    C2Withdraw1:= 350;
+    C2Withdraw2:= 550;
+
+    C3Deposit1:= 3000;
+    C3Withdraw1:= 450;
+    C3Deposit2:= 800;
+    C3Withdraw2:= 650;
+    C3Deposit3:= 900;
+    C3Deposit4:= 1000;
+
+    C4Deposit1:= 4000;
+    C4Deposit2:= 1100;
+
+    C5Deposit1:= 5000;
+    C5Withdraw1:= 750;
+
+    C1Balance:= 2450;
+    C2Balance:= 2400;
+    C3Balance:= 4600;
+    C4Balance:= 5100;
+    C5Balance:= 4250;
+
+    TotalBankBalance:= 18800;
+
+    AccNo1:= BankOperations.CreateAccount(Customer1, C1Mobile, C1Savings);
+    AccNo3:= BankOperations.CreateAccount(Customer3, C3Mobile, C2Current);
+    AccNo2:= BankOperations.CreateAccount(Customer2, C2Mobile, C3Savings);
+    AccNo5:= BankOperations.CreateAccount(Customer5, C5Mobile, C4Current);
+    AccNo4:= BankOperations.CreateAccount(Customer4, C4Mobile, C5Savings);
+
+  //Act
+    BankOperations.Deposit(AccNo1, C1Deposit1, TransactionDate);
+    BankOperations.Deposit(AccNo2, C2Deposit1, TransactionDate);
+    BankOperations.Deposit(AccNo3, C3Deposit1, TransactionDate);
+    BankOperations.Deposit(AccNo4, C4Deposit1, TransactionDate);
+    BankOperations.Deposit(AccNo5, C5Deposit1, TransactionDate);
+
+    BankOperations.Deposit(AccNo1, C1Deposit2, TransactionDate);
+    BankOperations.Deposit(AccNo2, C2Deposit2, TransactionDate);
+    BankOperations.Withdraw(AccNo3, C3Withdraw1, TransactionDate);
+    BankOperations.Deposit(AccNo4, C4Deposit2, TransactionDate);
+    BankOperations.Withdraw(AccNo5, C5Withdraw1, TransactionDate);
+
+    BankOperations.Deposit(AccNo1, C1Deposit3, TransactionDate);
+    BankOperations.Deposit(AccNo2, C2Deposit3, TransactionDate);
+    BankOperations.Deposit(AccNo3, C3Deposit2, TransactionDate);
+
+    BankOperations.Withdraw(AccNo1, C1Withdraw1, TransactionDate);
+    BankOperations.Withdraw(AccNo2, C2Withdraw1, TransactionDate);
+    BankOperations.Withdraw(AccNo3, C3Withdraw2, TransactionDate);
+
+    BankOperations.Withdraw(AccNo2, C2Withdraw2, TransactionDate);
+    BankOperations.Deposit(AccNo3, C3Deposit3, TransactionDate);
+
+    BankOperations.Deposit(AccNo3, C3Deposit4, TransactionDate);
+
+  //Assert
+    Assert.AreEqual(C1Balance, BankOperations.Account(AccNo1).Balance, sBalanceMatchFailed);
+    Assert.AreEqual(C2Balance, BankOperations.Account(AccNo2).Balance, sBalanceMatchFailed);
+    Assert.AreEqual(C3Balance, BankOperations.Account(AccNo3).Balance, sBalanceMatchFailed);
+    Assert.AreEqual(C4Balance, BankOperations.Account(AccNo4).Balance, sBalanceMatchFailed);
+    Assert.AreEqual(C5Balance, BankOperations.Account(AccNo5).Balance, sBalanceMatchFailed);
+
+    Assert.AreEqual(TotalBankBalance, BankOperations.TotalBalance, sBalanceMatchFailed);
+end;
+
+procedure TMyTestObject.TestWithdraw;
+var
+  Customer, CustomerMobile, AccountNumber:string;
+  DepositAmount, WithdrawalAmount, ExpectedBalance:Currency;
+  TransactionDate:TDateTime;
+  SavingsAccount:TBankAccountType;
+begin
+  //Arrange
+    Customer:= 'Antony Edward Stark';
+    CustomerMobile:= '+1 98765432106';
+    SavingsAccount:= batSavings;
+    DepositAmount:= 5000000;
+    WithdrawalAmount:= 10000;
+    ExpectedBalance:= 4990000;
+    TransactionDate:= now;
+    AccountNumber:= BankOperations.CreateAccount(Customer, CustomerMobile, SavingsAccount);
+    BankOperations.Deposit(AccountNumber, DepositAmount, TransactionDate);
+  //Act
+    BankOperations.Withdraw(AccountNumber, WithdrawalAmount, TransactionDate);
+  //Assert
+    Assert.AreEqual(ExpectedBalance, BankOperations.Account(AccountNumber).Balance, sWithdrawFailed);
+end;
+
+procedure TMyTestObject.TestWithdrawException;
+var
+  Customer, CustomerMobile, AccountNumber, InvalidAccountNumber:string;
+  DepositAmount, {WithdrawalAmount,} InvalidWithdrawalAmount, ExceededAmount:Currency;
+  TransactionDate:TDateTime;
+  SavingsAccount:TBankAccountType;
+begin
+  //Arrange
+    Customer:= 'Diana Prince';
+    CustomerMobile:= '+1 98765432107';
+    InvalidAccountNumber:= '1001110';
+    DepositAmount:= 2500;
+    //WithdrawalAmount:= 1000;
+    InvalidWithdrawalAmount:= -1000;
+    ExceededAmount:= 3000;
+    TransactionDate:= now;
+    SavingsAccount:= batSavings;
+    AccountNumber:= BankOperations.CreateAccount(Customer, CustomerMobile, SavingsAccount);
+    BankOperations.Deposit(AccountNumber, DepositAmount, TransactionDate);
+  //Assert
+    Assert.WillRaise(procedure begin BankOperations.Withdraw(AccountNumber, ExceededAmount, TransactionDate) end, EWithdrawException, sWithdrawException);
+    Assert.WillRaise(procedure begin BankOperations.Withdraw(AccountNumber, InvalidWithdrawalAmount, TransactionDate) end, EWithdrawException, sWithdrawException);
+    Assert.WillRaise(procedure begin BankOperations.Withdraw(InvalidAccountNumber, InvalidWithdrawalAmount, TransactionDate) end, EWithdrawException, sWithdrawException);
+end;
+
+initialization
+  TDUnitX.RegisterTestFixture(TMyTestObject);
+end.
